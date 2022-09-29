@@ -32,13 +32,13 @@ import java.util.ListIterator;
 
 /**
  * A utility to load data at a given resolution over a given date range. It relies on
- * a Helper class to supply and persist the actual data.
+ * a ResolutionRepository class to supply and persist the actual data.
  * <p>
  * Data at each resolution will be accumulated from that of lower resolutions, supplied
- * by the helper class. If no data of the lowest resolution is available, the helper
+ * by the repository class. If no data of the lowest resolution is available, the repository
  * will be asked to fetch the data from a remote repository (the warehouse).
  * <p>
- * At each resolution covered, the helper will be asked to persist the accumulated
+ * At each resolution covered, the repository will be asked to persist the accumulated
  * data in the local repository. Thus, subsequent requests for the same data ranges
  * will avoid the overhead of trips to the remote repository and accumulation.
  * <p>
@@ -49,10 +49,10 @@ import java.util.ListIterator;
  */
 @Slf4j
 public class ResolutionLoader<T extends DateRangedData<T>> {
-    private final ResolutionRepository<T> helper;
+    private final ResolutionRepository<T> repository;
 
-    public ResolutionLoader(ResolutionRepository<T> aHelper) {
-        helper = aHelper;
+    public ResolutionLoader(ResolutionRepository<T> aRepository) {
+        repository = aRepository;
     }
 
     /**
@@ -67,8 +67,8 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
      * hour's data.
      *
      * @param aResolution the resolution at which the data is required
-     * @param aStartDate the start of the date range to be retrieved
-     * @param aEndDate the end of the date range to be retrieved
+     * @param aStartDate the start of the date range to be retrieved, inclusive.
+     * @param aEndDate the end of the date range to be retrieved, exclusive.
      * @return the list of data elements covering the given date range at the requested
      * resolution, in ascending date order
      */
@@ -96,8 +96,8 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
      * from the warehouse repository, and persist that to the local repository.
      *
      * @param aResolution the resolution at which the data is required
-     * @param aStartDate the start of the date range to be retrieved
-     * @param aEndDate the end of the date range to be retrieved
+     * @param aStartDate the start of the date range to be retrieved, inclusive.
+     * @param aEndDate the end of the date range to be retrieved, exclusive.
      * @return the list of data elements covering the given date range at the requested
      * resolution, in ascending date order
      */
@@ -109,11 +109,12 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
         if (aResolution == null) {
             // fetch the lowest resolution data from the warehouse
             if (log.isDebugEnabled()) {
-                log.debug("Asking helper to fetch data for {} - {}", aStartDate, aEndDate);
+                log.debug("Asking repository to fetch data for {} - {}", aStartDate, aEndDate);
             }
-            return helper.fetch(aStartDate, aEndDate);
+            return repository.fetch(aStartDate, aEndDate);
         }
 
+        long started = System.currentTimeMillis();
         Resolution lowerResolution = aResolution.getLower().orElse(null);
 
         // adjust requested dates to fit resolution boundaries
@@ -134,9 +135,9 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
 
             // read main body of period from any data we have in the local database
             if (log.isDebugEnabled()) {
-                log.debug("Asking helper to get data at {}, for {} - {}", aResolution, resolutionStartDate, resolutionEndDate);
+                log.debug("Asking repository to get data at {}, for {} - {}", aResolution, resolutionStartDate, resolutionEndDate);
             }
-            List<T> body = helper.get(aResolution, resolutionStartDate, resolutionEndDate);
+            List<T> body = repository.get(aResolution, resolutionStartDate, resolutionEndDate);
 
             // add the main body of data to the result
             result.addAll(body);
@@ -162,7 +163,7 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
             // if we filled any gaps
             if (!missing.isEmpty()) {
                 // save them and add to the overall results
-                result.addAll(helper.save(missing));
+                result.addAll(repository.save(missing));
                 Collections.sort(result);
             }
         }
@@ -173,7 +174,8 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
             result.addAll(accumulate(aResolution, resolutionEndDate, aEndDate));
         }
 
-        log.debug("Loaded {} data entries for {}", result.size(), aResolution);
+        log.debug("Loaded {} data entries for {} in {}ms", result.size(), aResolution,
+            System.currentTimeMillis() - started);
         return result;
     }
 
@@ -183,8 +185,8 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
      * the given resolution.
      *
      * @param aResolution the resolution to which we want to aggregate the data
-     * @param aStartDate the start of the date range to be aggregated
-     * @param aEndDate the end of the date range to be aggregated
+     * @param aStartDate the start of the date range to be aggregated, inclusive.
+     * @param aEndDate the end of the date range to be aggregated, exclusive.
      * @return the given data aggregated over the given date range at the given resolution
      */
     private List<T> accumulate(Resolution aResolution, Instant aStartDate, Instant aEndDate) {
@@ -207,7 +209,7 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
         // while we haven't reached the end
         while (periodStart.isBefore(aEndDate)) {
             // start a new accumulator for this period
-            Accumulation<T> accumulation = helper.newAccumulation(aResolution,
+            Accumulation<T> accumulation = repository.newAccumulation(aResolution,
                 max(aStartDate, periodStart),
                 min(aEndDate, periodEnd));
 
