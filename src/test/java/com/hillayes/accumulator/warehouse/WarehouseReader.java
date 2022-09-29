@@ -32,6 +32,9 @@ public interface WarehouseReader<T> {
     /**
      * The callback method used to parse the given line of warehouse data, and return
      * the resulting object.
+     * <p>
+     * The given line of data takes the form:
+     *  {epoch-long},{count-a},{count-b}
      *
      * @param aRequest the request that initiated the entire result set. Passed for information only.
      * @param aLine the line of warehouse data to be parsed.

@@ -24,7 +24,6 @@ package com.hillayes.accumulator.warehouse;
 
 import com.hillayes.accumulator.DateRangedData;
 import com.hillayes.accumulator.Resolution;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -36,12 +35,15 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
  * A repository for raw data that is to be fed into the accumulation process.
+ * Simulates a data warehouse that returns data elements as comma-delimited
+ * strings, in the form:
+ * {epoch-long},{count-a},{count-b}
  */
-@RequiredArgsConstructor
 @Slf4j
 public class WarehouseRepository {
     /**
@@ -60,6 +62,14 @@ public class WarehouseRepository {
      */
     private final ExecutorService executorService;
 
+    public WarehouseRepository() {
+        this(Executors.newFixedThreadPool(6));
+    }
+
+    public WarehouseRepository(ExecutorService aExecutorService) {
+        executorService = aExecutorService;
+    }
+
     /**
      * Retrieves the data for the given request from the warehouse, and parses it using the
      * given WarehouseReader before returning the result.
@@ -75,7 +85,8 @@ public class WarehouseRepository {
      * @return the ordered collection of data retrieved.
      */
     public <T extends DateRangedData<T>> List<T> get(WarehouseRequest aRequest, WarehouseReader<T> aReader) {
-        log.debug("Get warehouse data: {}", aRequest);
+        log.debug("Get warehouse data [request: {}]", aRequest);
+        long timer = System.currentTimeMillis();
 
         // a queue to which futures are gathered on completion
         ExecutorCompletionService<ResponsePart<T>> completionQueue
@@ -90,7 +101,7 @@ public class WarehouseRepository {
             .peek(r -> completionQueue.submit(new WarehouseTask<>(r, aReader)))
             .count();
 
-        log.debug("Get warehouse data: divided request into {} parts", count);
+        log.debug("Get warehouse data: divided request into parts [count: {}]", count);
 
         // gather the results of each request
         List<ResponsePart<T>> results = new ArrayList<>((int) count);
@@ -119,16 +130,18 @@ public class WarehouseRepository {
             }
         }
 
-        log.debug("Got warehouse data: {} [size: {}]", aRequest, totalCount);
-
         // return the joined result sets in correct order
-        return results.stream()
+        List<T> result = results.stream()
             .sorted() // sort on leading start date
             .map(ResponsePart::getData) // extract the part's data
             .reduce(new ArrayList<>(totalCount), (a, b) -> { // accumulate parts in date order
                 a.addAll(b);
                 return a;
             });
+
+        log.debug("Got warehouse data [request: {}, size: {}, in: {}ms]", aRequest, totalCount,
+            System.currentTimeMillis() - timer);
+        return result;
     }
 
     /**
@@ -154,7 +167,8 @@ public class WarehouseRepository {
 
         @Override
         public ResponsePart<T> call() {
-            log.debug("Fetching warehouse data: {}", request);
+            log.debug("Fetching warehouse data [request: {}]", request);
+            long timer = System.currentTimeMillis();
 
             Resolution resolution = request.getResolution();
             Instant start = request.getStartDate();
@@ -174,8 +188,8 @@ public class WarehouseRepository {
 
                 // create a random line of data
                 line.setLength(0);
-                line.append(start.getEpochSecond()).append(' ')
-                    .append(requestCount).append(' ')
+                line.append(start.getEpochSecond()).append(',')
+                    .append(requestCount).append(',')
                     .append(blockCount);
 
                 // parse the data and add to result
@@ -193,7 +207,8 @@ public class WarehouseRepository {
             } catch (InterruptedException ignore) {
             }
 
-            log.debug("Fetched warehouse data: {} - size: {}", request, result.size());
+            log.debug("Fetched warehouse data [request: {}, size: {}, in: {}ms]", request, result.size(),
+                System.currentTimeMillis() - timer);
             return new ResponsePart<>(result);
         }
     }

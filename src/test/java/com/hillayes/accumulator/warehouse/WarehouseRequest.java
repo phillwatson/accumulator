@@ -38,6 +38,10 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 public class WarehouseRequest {
+    /**
+     * Some attribute that segregates the warehouse data into partitions.
+     * Used here to illustrate that data to be accumulated can be partitioned.
+     */
     private final int nameserver;
     private final Resolution resolution;
     private final Instant startDate;
