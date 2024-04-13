@@ -47,10 +47,9 @@ import java.util.concurrent.Future;
 @Slf4j
 public class WarehouseRepository {
     /**
-     * The desired duration to which requests will be divided before submitting
-     * them to the warehouse.
+     * The duration to which requests will be divided before submitting them to the warehouse.
      */
-    private static final Duration REQUEST_SIZE = Duration.ofMinutes(120);
+    private static final Duration MAX_REQUEST_SIZE = Duration.ofMinutes(120);
 
     /**
      * Requests to the warehouse are divided into smaller requests and issued, as
@@ -93,10 +92,9 @@ public class WarehouseRepository {
             = new ExecutorCompletionService<>(executorService);
 
         // divide request into smaller portions of configured temporal units
-        // submit them to the executor service
-        // and record how many requests were submitted
-        List<WarehouseRequest> requests = aRequest.divide(REQUEST_SIZE);
+        List<WarehouseRequest> requests = aRequest.divide(MAX_REQUEST_SIZE);
 
+        // submit them to the executor service
         // create a callable task to process the request
         // add task to executor and move to completion queue when complete
         requests.forEach(r -> completionQueue.submit(new WarehouseTask<>(r, aReader)));
@@ -134,14 +132,16 @@ public class WarehouseRepository {
         // return the joined result sets in correct order
         List<T> result = results.stream()
             .sorted() // sort on leading start date
-            .map(ResponsePart::getData) // extract the part's data
+            .map(ResponsePart::getData) // extract each part's data
             .reduce(new ArrayList<>(totalCount), (a, b) -> { // accumulate parts in date order
                 a.addAll(b);
                 return a;
             });
 
-        log.debug("Got warehouse data [request: {}, size: {}, in: {}ms]", aRequest, totalCount,
-            System.currentTimeMillis() - timer);
+        if (log.isDebugEnabled()) {
+            log.debug("Got warehouse data [request: {}, size: {}, in: {}ms]",
+                aRequest, totalCount, System.currentTimeMillis() - timer);
+        }
         return result;
     }
 
@@ -208,8 +208,10 @@ public class WarehouseRepository {
             } catch (InterruptedException ignore) {
             }
 
-            log.debug("Fetched warehouse data [request: {}, size: {}, in: {}ms]", request, result.size(),
-                System.currentTimeMillis() - timer);
+            if (log.isDebugEnabled()) {
+                log.debug("Fetched warehouse data [request: {}, size: {}, in: {}ms]",
+                    request, result.size(), System.currentTimeMillis() - timer);
+            }
             return new ResponsePart<>(result);
         }
     }

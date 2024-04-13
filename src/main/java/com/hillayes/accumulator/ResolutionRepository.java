@@ -77,7 +77,7 @@ public interface ResolutionRepository<T extends DateRangedData<T>> {
         while (split.estimateSize() > BATCH_SIZE) {
             batches.addAll(batches.stream()
                 .map(Spliterator::trySplit)
-                .collect(Collectors.toList()));
+                .toList());
         }
 
         // save each batch

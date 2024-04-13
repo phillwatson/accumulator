@@ -74,15 +74,16 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
      */
     public List<T> load(Resolution aResolution, Instant aStartDate, Instant aEndDate) {
         if (log.isDebugEnabled()) {
-            log.debug("Beginning loading data at {}, for {} - {}", aResolution, aStartDate, aEndDate);
+            log.debug("Beginning loading data [resolution: {}, start: {}, end: {}]",
+                aResolution, aStartDate, aEndDate);
         }
 
         long started = System.currentTimeMillis();
         List<T> result = loadOrFetch(aResolution, aStartDate, min(aEndDate, Instant.now()));
 
         if (log.isDebugEnabled()) {
-            log.debug("Completed loading {} data entries for {} in {}ms", result.size(), aResolution,
-                System.currentTimeMillis() - started);
+            log.debug("Completed loading data [resolution: {}, size: {}, duration: {}ms]",
+                result.size(), aResolution, System.currentTimeMillis() - started);
         }
         return result;
     }
@@ -103,14 +104,13 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
      */
     private List<T> loadOrFetch(Resolution aResolution, Instant aStartDate, Instant aEndDate) {
         if (log.isDebugEnabled()) {
-            log.debug("Loading data at {}, for {} - {}", aResolution, aStartDate, aEndDate);
+            log.debug("Loading data [resolution: {}, start: {}, end: {}]",
+                aResolution, aStartDate, aEndDate);
         }
 
         if (aResolution == null) {
             // fetch the lowest resolution data from the warehouse
-            if (log.isDebugEnabled()) {
-                log.debug("Asking repository to fetch data for {} - {}", aStartDate, aEndDate);
-            }
+            log.debug("Asking repository to fetch data [start: {}, end: {}]", aStartDate, aEndDate);
             return repository.fetch(aStartDate, aEndDate);
         }
 
@@ -135,7 +135,8 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
 
             // read main body of period from any data we have in the local database
             if (log.isDebugEnabled()) {
-                log.debug("Asking repository to get data at {}, for {} - {}", aResolution, resolutionStartDate, resolutionEndDate);
+                log.debug("Asking repository to get data [resolution: {}, start: {}, end: {}]",
+                    aResolution, resolutionStartDate, resolutionEndDate);
             }
             List<T> body = repository.get(aResolution, resolutionStartDate, resolutionEndDate);
 
@@ -162,6 +163,10 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
 
             // if we filled any gaps
             if (!missing.isEmpty()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Saving data [size: {}, resolution: {}, start: {}, end: {}]",
+                        missing.size(), aResolution, resolutionStartDate, resolutionEndDate);
+                }
                 // save them and add to the overall results
                 result.addAll(repository.save(missing));
                 Collections.sort(result);
@@ -174,8 +179,10 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
             result.addAll(accumulate(aResolution, resolutionEndDate, aEndDate));
         }
 
-        log.debug("Loaded {} data entries for {} in {}ms", result.size(), aResolution,
-            System.currentTimeMillis() - started);
+        if (log.isDebugEnabled()) {
+            log.debug("Loaded data entries [resolution: {}, size: {}, duration: {}ms]",
+                result.size(), aResolution, System.currentTimeMillis() - started);
+        }
         return result;
     }
 
@@ -193,7 +200,8 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
         Resolution lowerRes = aResolution.getLower().orElse(null);
 
         if (log.isDebugEnabled()) {
-            log.debug("Accumulating {} data items from {}, for {} - {}", aResolution, lowerRes, aStartDate, aEndDate);
+            log.debug("Accumulating data items [to: {}, from: {}, start: {}, end: {}]",
+                aResolution, lowerRes, aStartDate, aEndDate);
         }
 
         // fetch data from the lower resolution
@@ -240,7 +248,10 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
             periodEnd = aResolution.next(periodStart);
         }
 
-        log.debug("Accumulating {} from {} complete with {} items", aResolution, lowerRes, result.size());
+        if (log.isDebugEnabled()) {
+            log.debug("Accumulating data items [to: {}, from: {}, start: {}, end: {}, size: {}]",
+                aResolution, lowerRes, aStartDate, aEndDate, result.size());
+        }
         return result;
     }
 

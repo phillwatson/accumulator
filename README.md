@@ -19,3 +19,9 @@ subsequent requests covering the same data ranges will avoid the overhead of tri
 remote repository and accumulation.
 
 **IMPORTANT:** The start dates are inclusive. Whereas, the end dates are exclusive.
+
+### Design
+The principal concern is to provide a mechanism to accumulate data at various resolutions
+whilst minimizing the number of trips to the warehouse. A secondary concern is to allow
+the accumulation to be spread over a number of threads, in order to improve the performance.
+

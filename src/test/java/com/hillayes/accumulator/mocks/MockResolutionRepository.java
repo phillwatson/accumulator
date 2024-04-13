@@ -5,16 +5,8 @@ import com.hillayes.accumulator.Resolution;
 import com.hillayes.accumulator.ResolutionRepository;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j

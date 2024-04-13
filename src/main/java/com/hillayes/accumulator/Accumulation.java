@@ -11,10 +11,10 @@ import java.time.Instant;
  * create a new Accumulation instance.
  * <p>
  * As each element within the lower-resolution is obtained it will be passed to the
- * Accumulation instance via the {@link #add(DateRangedData)} method. When resolution's
- * date range is complete, the {@link ResolutionLoader} will call {@link #complete()}
- * and a new record for the desired resolution will be created with the accumulated
- * values of the lower-resolution.
+ * {@link #add(DateRangedData)} method. When desired resolution's date range is
+ * complete, the {@link ResolutionLoader} will call {@link #complete()} and a new
+ * record for the desired resolution will be created with the accumulated values of
+ * the lower-resolution.
  * <p>
  * This interface allows the ResolutionLoader to be agnostic as to what the data
  * contains and how it is to be aggregated. All the ResolutionLoader needs to know
@@ -29,18 +29,17 @@ public interface Accumulation<T extends DateRangedData<T>> {
      * the given element are used to construct a final accumulated result.
      *
      * @param aLowerResRecord the lower-resolution element to be added to the
-     * higher-resolution element.
+     * current resolution element.
      */
     void add(T aLowerResRecord);
 
     /**
-     * Called to construct and return an element that is the higher-resolution
-     * accumulation of the preceding elements passed to the add() method.
+     * Called to construct and return an element that is the accumulation of
+     * the preceding elements passed to the add() method.
      * <p>
-     * On calling this method, the Accumulator will be discarded.
+     * On calling this method, the Accumulator should be discarded - or reset.
      *
-     * @return the final, higher resolution equivalent of the lower-resolution
-     * elements.
+     * @return the accumulation of the resolution passed to the add() method.
      */
     T complete();
 }
