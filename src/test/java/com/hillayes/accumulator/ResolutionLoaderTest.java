@@ -3,6 +3,7 @@ package com.hillayes.accumulator;
 import com.hillayes.accumulator.mocks.MockDateRangedData;
 import com.hillayes.accumulator.mocks.MockResolutionRepository;
 import com.hillayes.accumulator.resolutions.DefaultResolution;
+import com.hillayes.accumulator.warehouse.WarehouseRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

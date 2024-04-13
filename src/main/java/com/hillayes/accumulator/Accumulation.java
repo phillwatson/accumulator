@@ -1,19 +1,26 @@
 package com.hillayes.accumulator;
 
+import java.time.Instant;
+
 /**
- * When aggregating data from lower-resolutions to higher-resolutions, the
- * ResolutionLoader will perform an accumulation of the values in the lower
- * resolution records.
+ * When aggregating data for a given resolutions, the {@link ResolutionLoader}
+ * will accumulate the values in the lower resolution records.
  * <p>
- * This interface allows the ResolutionLoader to be agnostic as to how the data
- * it processes is accumulated. The accumulation of each set of records begins
- * with a call to the Helper.startAccumulation() method. Typically, the
- * Helper will create a new Accumulator instance. A call is made to add()
- * for each lower-resolution record encountered. When no more lower-resolution
- * record are available, the ResolutionLoader will call complete() and a new
- * higher-resolution record will be created with the accumulated values.
+ * The accumulation of data for each unit of the resolution begins with a call to
+ * {@link ResolutionRepository#newAccumulation(Resolution, Instant, Instant)} to
+ * create a new Accumulation instance.
+ * <p>
+ * As each element within the lower-resolution is obtained it will be passed to the
+ * Accumulation instance via the {@link #add(DateRangedData)} method. When resolution's
+ * date range is complete, the {@link ResolutionLoader} will call {@link #complete()}
+ * and a new record for the desired resolution will be created with the accumulated
+ * values of the lower-resolution.
+ * <p>
+ * This interface allows the ResolutionLoader to be agnostic as to what the data
+ * contains and how it is to be aggregated. All the ResolutionLoader needs to know
+ * is that each element of the data has a start and end date.
  *
- * @param <T> the class of DateRangedData that the Accumulator can process.
+ * @param <T> the class of DateRangedData that the Accumulation can process.
  */
 public interface Accumulation<T extends DateRangedData<T>> {
     /**

@@ -95,16 +95,17 @@ public class WarehouseRepository {
         // divide request into smaller portions of configured temporal units
         // submit them to the executor service
         // and record how many requests were submitted
-        long count = aRequest.divide(REQUEST_SIZE).stream()
-            // create a callable task to process the request
-            // add task to executor and move to completion queue when complete
-            .peek(r -> completionQueue.submit(new WarehouseTask<>(r, aReader)))
-            .count();
+        List<WarehouseRequest> requests = aRequest.divide(REQUEST_SIZE);
 
+        // create a callable task to process the request
+        // add task to executor and move to completion queue when complete
+        requests.forEach(r -> completionQueue.submit(new WarehouseTask<>(r, aReader)));
+
+        int count = requests.size();
         log.debug("Get warehouse data: divided request into parts [count: {}]", count);
 
         // gather the results of each request
-        List<ResponsePart<T>> results = new ArrayList<>((int) count);
+        List<ResponsePart<T>> results = new ArrayList<>(count);
         int totalCount = 0;
         while (count > 0) {
             try {

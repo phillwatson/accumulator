@@ -196,7 +196,7 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
             log.debug("Accumulating {} data items from {}, for {} - {}", aResolution, lowerRes, aStartDate, aEndDate);
         }
 
-        // fetch data for that gap from the lower resolution
+        // fetch data from the lower resolution
         // take a 'rewindable' iterator of the lower-res elements
         ListIterator<T> lowerResItems = loadOrFetch(lowerRes, aStartDate, aEndDate).listIterator();
 
