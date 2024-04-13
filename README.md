@@ -21,7 +21,12 @@ remote repository and accumulation.
 **IMPORTANT:** The start dates are inclusive. Whereas, the end dates are exclusive.
 
 ### Design
-The principal concern is to provide a mechanism to accumulate data at various resolutions
-whilst minimizing the number of trips to the warehouse. A secondary concern is to allow
+Although the library intent is to provide a mechanism to accumulate data at various resolutions
+whilst minimizing the number of trips to the warehouse. Its primary concern is to allow
 the accumulation to be spread over a number of threads, in order to improve the performance.
+
+The implementation of `ResolutionRepository` is 
+As the data is immutable, and multiple threads will produce the same data, conflicts aren't
+important. Whoever writes it first wins. Without transactions, other threads can read the
+data as each batch is completed.
 

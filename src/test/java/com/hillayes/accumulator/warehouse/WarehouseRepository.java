@@ -43,6 +43,9 @@ import java.util.concurrent.Future;
  * Simulates a data warehouse that returns data elements as comma-delimited
  * strings, in the form:
  * {epoch-long},{count-a},{count-b}
+ *
+ * The data is retrieved using threads to illustrate how the warehouse might
+ * process requests concurrently.
  */
 @Slf4j
 public class WarehouseRepository {
@@ -62,7 +65,7 @@ public class WarehouseRepository {
     private final ExecutorService executorService;
 
     public WarehouseRepository() {
-        this(Executors.newFixedThreadPool(6));
+        this(Executors.newVirtualThreadPerTaskExecutor());
     }
 
     public WarehouseRepository(ExecutorService aExecutorService) {
@@ -185,7 +188,7 @@ public class WarehouseRepository {
             StringBuilder line = new StringBuilder();
             while (start.isBefore(end)) {
                 int requestCount = random.nextInt(200) + 100;
-                int blockCount = random.nextInt(100);
+                int blockCount = random.nextInt(100) + 2;
 
                 // create a random line of data
                 line.setLength(0);
@@ -201,9 +204,10 @@ public class WarehouseRepository {
             }
 
             try {
-                synchronized (this) {
+                Object lock = new Object();
+                synchronized (lock) {
                     // sleep to simulate latency
-                    this.wait(500 + (long) random.nextInt(5) * result.size());
+                    lock.wait(500 + (long) random.nextInt(5) * result.size());
                 }
             } catch (InterruptedException ignore) {
             }

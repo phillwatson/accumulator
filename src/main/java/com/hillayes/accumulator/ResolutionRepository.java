@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Spliterator;
-import java.util.stream.Collectors;
 
 /**
  * An interface that allows the ResolutionLoader to be agnostic as to the form of

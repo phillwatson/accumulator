@@ -231,7 +231,7 @@ public class ResolutionLoader<T extends DateRangedData<T>> {
                 }
 
                 // if we've exceeded this period
-                if (next.getStartDate().isAfter(periodEnd)) {
+                if (next.getStartDate().compareTo(periodEnd) >= 0) {
                     // rewind iterator for next loop
                     lowerResItems.previous();
                     break;
