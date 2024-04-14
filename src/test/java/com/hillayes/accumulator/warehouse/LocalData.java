@@ -9,7 +9,7 @@ import java.time.Instant;
 
 @Data
 @ToString
-public class LocalData implements DateRangedData<LocalData> {
+public class LocalData implements DateRangedData {
     private Resolution resolution;
     private Instant startDate;
     private Instant endDate;

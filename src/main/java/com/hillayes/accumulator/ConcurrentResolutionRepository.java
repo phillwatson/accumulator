@@ -12,11 +12,11 @@ import java.util.concurrent.Executors;
  *
  * @param <T> the data type of the batch to be persisted.
  */
-public abstract class ThreadedResolutionRepository<T extends DateRangedData<T>> implements ResolutionRepository<T> {
+public abstract class ConcurrentResolutionRepository<T extends DateRangedData> implements ResolutionRepository<T> {
     private final ExecutorService executorService;
     protected final ThreadedDatabase<T> database;
 
-    public ThreadedResolutionRepository(ThreadedDatabase<T> aBatchWriter) {
+    public ConcurrentResolutionRepository(ThreadedDatabase<T> aBatchWriter) {
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
         this.database = aBatchWriter;
     }

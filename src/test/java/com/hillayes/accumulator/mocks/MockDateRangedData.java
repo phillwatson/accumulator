@@ -11,7 +11,7 @@ import java.time.Instant;
 @Getter
 @Builder
 @ToString
-public class MockDateRangedData implements DateRangedData<MockDateRangedData> {
+public class MockDateRangedData implements DateRangedData {
     private final Resolution resolution;
     private final Instant startDate;
     private final Instant endDate;

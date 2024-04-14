@@ -17,7 +17,7 @@ import java.util.Spliterator;
  *
  * @param <T> the class of DateRangedData that the Helper supplies and persists.
  */
-public interface ResolutionRepository<T extends DateRangedData<T>> {
+public interface ResolutionRepository<T extends DateRangedData> {
     /**
      * Governs the max number of entries inserted in each batch. As the data is not
      * written in transactions, other clients can read the data as each batch is

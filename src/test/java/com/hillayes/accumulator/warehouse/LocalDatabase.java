@@ -1,14 +1,14 @@
 package com.hillayes.accumulator.warehouse;
 
 import com.hillayes.accumulator.Resolution;
-import com.hillayes.accumulator.ThreadedResolutionRepository;
+import com.hillayes.accumulator.ConcurrentResolutionRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.*;
 
 @Slf4j
-public class LocalDatabase implements ThreadedResolutionRepository.ThreadedDatabase<LocalData> {
+public class LocalDatabase implements ConcurrentResolutionRepository.ThreadedDatabase<LocalData> {
     private static final List<LocalData> EMPTY_RANGE = List.of();
 
     // the repository that will store the fetched data - could be a database

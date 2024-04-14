@@ -10,7 +10,7 @@ The warehouse may be a remote repository from which the retrieval is slow or exp
 
 Data at each resolution will be accumulated from that of lower resolutions, supplied
 by the local repository. If the local repository holds no data of the lower resolution,
-it will derive it from that of the next lower resolution. This process will continue
+it will be derived from that of the next lower resolution. This process will continue
 until the lowest resolution is reached. At which point it will retrieve the data from
 the warehouse.
 
@@ -23,10 +23,25 @@ remote repository and accumulation.
 ### Design
 Although the library intent is to provide a mechanism to accumulate data at various resolutions
 whilst minimizing the number of trips to the warehouse. Its primary concern is to allow
-the accumulation to be spread over a number of threads, in order to improve the performance.
+the accumulation to be spread over a number of threads, in order to reduce latency.
 
-The implementation of `ResolutionRepository` is 
-As the data is immutable, and multiple threads will produce the same data, conflicts aren't
-important. Whoever writes it first wins. Without transactions, other threads can read the
-data as each batch is completed.
+The abstract class `ConcurrentResolutionRepository` implements `ResolutionRepository` to
+use Virtual Threads to persist the accumulated results of each Resolution. The persistence
+is intended to be performed without the use of blocking transactions.
 
+One issue in any design of this type is that concurrent requests for the same time frame
+may perform the same accumulation unnecessarily. One solution may be to use a locking
+mechanism (or semaphore). However, determining where in the time frame to place the locks
+would be over complex, and the overall result would be a negative impact on performance.
+
+Fortunately, as the data is immutable, multiple requests for the same time frame can be assumed
+to produce the same data; so write conflicts aren't important. Whichever request writes it first
+wins. Without the use of blocking transactions, other requests can read the data as each batch
+is completed. If the batches are of a size large enough to make their persistence efficient
+yet small enough to allow other, concurrent requests to make use of them, the duplicated effort
+should not be so significant.
+
+Another place where work can be spread over several threads is demonstrated in the test class
+`WarehouseRepository`. This class divides a request for data from the remote warehouse into
+multiple requests of smaller time-slices. It then submits those requests to the warehouse
+using virtual threads, and joins the results as they arrive.

@@ -86,7 +86,7 @@ public class WarehouseRepository {
      * @param <T> the class of Warehouse data to be parsed.
      * @return the ordered collection of data retrieved.
      */
-    public <T extends DateRangedData<T>> List<T> get(WarehouseRequest aRequest, WarehouseReader<T> aReader) {
+    public <T extends DateRangedData> List<T> get(WarehouseRequest aRequest, WarehouseReader<T> aReader) {
         log.debug("Get warehouse data [request: {}]", aRequest);
         long timer = System.currentTimeMillis();
 
@@ -159,7 +159,7 @@ public class WarehouseRepository {
      *
      * @param <T> the class of data to be retrieved and parsed.
      */
-    private static class WarehouseTask<T extends DateRangedData<T>> implements Callable<ResponsePart<T>> {
+    private static class WarehouseTask<T extends DateRangedData> implements Callable<ResponsePart<T>> {
         private final WarehouseRequest request;
         private final WarehouseReader<T> reader;
 
@@ -228,7 +228,7 @@ public class WarehouseRepository {
      *
      * @param <T> the class of DateRangeData held in the parts.
      */
-    private static class ResponsePart<T extends DateRangedData<T>> implements Comparable<ResponsePart<T>> {
+    private static class ResponsePart<T extends DateRangedData> implements Comparable<ResponsePart<T>> {
         private final Instant startDate;
         private final List<T> data;
 

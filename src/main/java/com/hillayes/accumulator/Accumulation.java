@@ -22,7 +22,7 @@ import java.time.Instant;
  *
  * @param <T> the class of DateRangedData that the Accumulation can process.
  */
-public interface Accumulation<T extends DateRangedData<T>> {
+public interface Accumulation<T extends DateRangedData> {
     /**
      * Called repeatedly to add each element to be included the accumulation.
      * The implementation should maintain a 'total' of whatever properties of

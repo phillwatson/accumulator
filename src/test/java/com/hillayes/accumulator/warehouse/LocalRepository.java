@@ -2,13 +2,13 @@ package com.hillayes.accumulator.warehouse;
 
 import com.hillayes.accumulator.Accumulation;
 import com.hillayes.accumulator.Resolution;
-import com.hillayes.accumulator.ThreadedResolutionRepository;
+import com.hillayes.accumulator.ConcurrentResolutionRepository;
 import com.hillayes.accumulator.resolutions.DefaultResolution;
 
 import java.time.Instant;
 import java.util.*;
 
-public class LocalRepository extends ThreadedResolutionRepository<LocalData> {
+public class LocalRepository extends ConcurrentResolutionRepository<LocalData> {
     // the remote source from which data of the lowest resolution is fetched
     private final WarehouseRepository warehouseRepository;
 

@@ -48,7 +48,7 @@ import java.util.ListIterator;
  * @param <T> the class of DateRangedData to be loaded.
  */
 @Slf4j
-public class ResolutionLoader<T extends DateRangedData<T>> {
+public class ResolutionLoader<T extends DateRangedData> {
     private final ResolutionRepository<T> repository;
 
     public ResolutionLoader(ResolutionRepository<T> aRepository) {

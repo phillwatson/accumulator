@@ -34,7 +34,7 @@ import java.time.Instant;
  *   startDate >= n < endDate
  * </pre>
  */
-public interface DateRangedData<T extends DateRangedData<T>> extends Comparable<T> {
+public interface DateRangedData extends Comparable<DateRangedData> {
     /**
      * Returns the start of the period covered by this instance, INCLUSIVE.
      */
@@ -52,7 +52,7 @@ public interface DateRangedData<T extends DateRangedData<T>> extends Comparable<
      * @return -1 if this instance is earlier that the given, 0 if the two are
      * the same, and 1 if this instance is later than the given.
      */
-    default int compareTo(T aOther) {
+    default int compareTo(DateRangedData aOther) {
         if (aOther == null) {
             return 1;
         }
