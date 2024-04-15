@@ -21,11 +21,9 @@ the remote repository and accumulation.
 **IMPORTANT:** The start dates are inclusive. Whereas, the end dates are exclusive.
 
 ### Design
-Although the library's intent is to provide a mechanism to accumulate data at various
-resolutions whilst minimizing the number of trips to the warehouse. Its design relies
-on the use of threads to persist the data as it is accumulated and, also, to retrieve
-the data from the warehouse. This reduces the impact of those blocking I/O actions on
-the overall performance of the task of accumulating the data.
+The design allows the use of threads to persist the data as it is accumulated and,
+also, to retrieve the data from the warehouse. This reduces the impact of those
+blocking I/O actions on the overall performance of the task of accumulating the data.
 
 The abstract class `ConcurrentResolutionRepository` implements `ResolutionRepository`
 to use Virtual Threads to persist the accumulated results of each Resolution. The
