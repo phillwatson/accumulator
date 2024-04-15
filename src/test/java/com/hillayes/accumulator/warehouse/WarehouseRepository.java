@@ -103,24 +103,24 @@ public class WarehouseRepository {
         requests.forEach(r -> completionQueue.submit(new WarehouseTask<>(r, aReader)));
 
         int count = requests.size();
-        log.debug("Get warehouse data: divided request into parts [count: {}]", count);
+        log.debug("Divided warehouse request into parts [count: {}]", count);
 
         // gather the results of each request
         List<ResponsePart<T>> results = new ArrayList<>(count);
-        int totalCount = 0;
-        while (count > 0) {
+        int totalSize = 0;
+        while (count-- > 0) {
             try {
                 // wait for the next request to complete
-                log.debug("Get warehouse data: waiting for next part");
+                log.debug("Waiting for next warehouse response");
                 Future<ResponsePart<T>> data = completionQueue.take();
-                --count;
 
                 // add request's results to overall results
                 ResponsePart<T> part = data.get();
-                log.debug("Get warehouse data: retrieved part [size: {}]", part.size());
+                log.debug("Retrieved warehouse response [startDate: {}, size: {}]",
+                    part.startDate, part.size());
 
                 // maintain response totals
-                totalCount += part.size();
+                totalSize += part.size();
                 results.add(part);
             } catch (InterruptedException e) {
                 // Preserve interrupt status
@@ -136,14 +136,14 @@ public class WarehouseRepository {
         List<T> result = results.stream()
             .sorted() // sort on leading start date
             .map(ResponsePart::getData) // extract each part's data
-            .reduce(new ArrayList<>(totalCount), (a, b) -> { // accumulate parts in date order
+            .reduce(new ArrayList<>(totalSize), (a, b) -> { // accumulate parts in date order
                 a.addAll(b);
                 return a;
             });
 
         if (log.isDebugEnabled()) {
             log.debug("Got warehouse data [request: {}, size: {}, in: {}ms]",
-                aRequest, totalCount, System.currentTimeMillis() - timer);
+                aRequest, totalSize, System.currentTimeMillis() - timer);
         }
         return result;
     }
@@ -204,9 +204,9 @@ public class WarehouseRepository {
             }
 
             try {
+                // sleep to simulate latency
                 Object lock = new Object();
                 synchronized (lock) {
-                    // sleep to simulate latency
                     lock.wait(500 + (long) random.nextInt(5) * result.size());
                 }
             } catch (InterruptedException ignore) {
