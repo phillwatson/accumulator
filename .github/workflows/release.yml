@@ -41,6 +41,6 @@ jobs:
       - name: Build with Maven
         # skips the tests due to lack of "test" profile
         run: |
-          mvn -B deploy -Pclient -Drevision=${{ steps.getRevision.outputs.id }}
+          mvn -B deploy -Drevision=${{ steps.getRevision.outputs.id }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
