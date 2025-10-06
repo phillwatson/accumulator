@@ -39,7 +39,6 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        # skips the tests due to lack of "test" profile
         run: |
           mvn -B deploy -Drevision=${{ steps.getRevision.outputs.id }}
         env:
