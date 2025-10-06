@@ -8,6 +8,7 @@ name: Pull Request CI with Maven
 on:
   push:
     paths-ignore: [ 'docs/**', '**/README.md' ]
+    tags-ignore: "v**"
 
 env:
   REGISTRY: ghcr.io
