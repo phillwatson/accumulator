@@ -6,7 +6,7 @@
 
     <groupId>com.hillayes</groupId>
     <artifactId>accumulation</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>${revision}</version>
 
     <name>Data Accumulator</name>
     <description>Library for accumulating abstract data over various date resolutions.</description>
@@ -21,10 +21,13 @@
     </distributionManagement>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <revision>1.0.0-SNAPSHOT</revision>
         <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <lombok.version>1.18.32</lombok.version>
         <slf4j.version>2.0.12</slf4j.version>
         <log4j.version>2.23.1</log4j.version>
