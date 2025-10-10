@@ -48,7 +48,6 @@ public class LocalDatabase implements ConcurrentResolutionRepository.ThreadedDat
         synchronized (repository) {
             log.debug("Looking for data [resolution: {}, startDate: {}, endDate: {}]",
                 aResolution, aStartDate, aEndDate);
-            log.debug("Contents: {}", repository.get(aResolution));
             return repository.getOrDefault(aResolution, EMPTY_RANGE).stream()
                 .filter(data -> aStartDate.compareTo(data.getEndDate()) <= 0)
                 .filter(data -> aEndDate.compareTo(data.getStartDate()) >= 0)
