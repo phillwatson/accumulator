@@ -26,7 +26,8 @@ public class LocalDatabase implements ConcurrentResolutionRepository.ThreadedDat
         }
 
         synchronized (repository) {
-            List<LocalData> resolution = repository.computeIfAbsent(list.get(0).getResolution(), k -> new ArrayList<>());
+            List<LocalData> resolution = repository
+                .computeIfAbsent(list.get(0).getResolution(), k -> new ArrayList<>(list.size()));
             resolution.addAll(list);
         }
 
@@ -35,7 +36,7 @@ public class LocalDatabase implements ConcurrentResolutionRepository.ThreadedDat
             Object lock = new Object();
             synchronized (lock) {
                 // sleep to simulate latency
-                lock.wait(500);
+                lock.wait(100);
             }
         } catch (InterruptedException ignore) {
         }

@@ -34,6 +34,13 @@ public class ResolutionLoaderTest {
             .mapToLong(LocalData::getUnits)
             .sum();
 
+        // wait for batches to be saved
+        // sleep to simulate latency
+        try {
+            Object lock = new Object();
+            synchronized (lock) { lock.wait(Duration.ofSeconds(3).toMillis()); }
+        } catch (InterruptedException ignore) { }
+
         // each resolution should equal the same total
         while (resolution != null) {
             Long result = repository.get(resolution, start, end).stream()
