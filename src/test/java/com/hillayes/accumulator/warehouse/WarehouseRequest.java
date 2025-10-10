@@ -57,20 +57,24 @@ public class WarehouseRequest {
      */
     public List<WarehouseRequest> divide(Duration aDuration) {
         List<WarehouseRequest> result = new ArrayList<>();
-        Instant s = startDate;
-        while (s.isBefore(endDate)) {
-            Instant e = s.plus(aDuration);
-            if (e.isAfter(endDate)) {
-                e = endDate;
-            }
+        if (!startDate.plus(aDuration).isBefore(endDate)) {
+            result.add(this);
+        } else {
+            Instant s = startDate;
+            while (s.isBefore(endDate)) {
+                Instant e = s.plus(aDuration);
+                if (e.isAfter(endDate)) {
+                    e = endDate;
+                }
 
-            result.add(WarehouseRequest.builder()
-                .nameserver(nameserver)
-                .resolution(resolution)
-                .startDate(s)
-                .endDate(e)
-                .build());
-            s = e;
+                result.add(WarehouseRequest.builder()
+                    .nameserver(nameserver)
+                    .resolution(resolution)
+                    .startDate(s)
+                    .endDate(e)
+                    .build());
+                s = e;
+            }
         }
 
         return result;
