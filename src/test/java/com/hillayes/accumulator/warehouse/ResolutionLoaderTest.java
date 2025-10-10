@@ -3,6 +3,7 @@ package com.hillayes.accumulator.warehouse;
 import com.hillayes.accumulator.Resolution;
 import com.hillayes.accumulator.ResolutionLoader;
 import com.hillayes.accumulator.resolutions.DefaultResolution;
+import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Slf4j
 public class ResolutionLoaderTest {
     @Test
     public void testResolutionConsistency() {
@@ -38,12 +40,12 @@ public class ResolutionLoaderTest {
         // sleep to simulate latency
         try {
             Object lock = new Object();
-            synchronized (lock) { lock.wait(Duration.ofSeconds(3).toMillis()); }
+            synchronized (lock) { lock.wait(Duration.ofSeconds(2).toMillis()); }
         } catch (InterruptedException ignore) { }
 
         // each resolution should equal the same total
         while (resolution != null) {
-            Long result = repository.get(resolution, start, end).stream()
+            Long result = loader.load(resolution, start, end).stream()
                 .mapToLong(LocalData::getUnits)
                 .sum();
                 assertEquals(total, result, "Resolution: " + resolution);

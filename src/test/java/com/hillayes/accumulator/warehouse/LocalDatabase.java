@@ -51,6 +51,7 @@ public class LocalDatabase implements ConcurrentResolutionRepository.ThreadedDat
             return repository.getOrDefault(aResolution, EMPTY_RANGE).stream()
                 .filter(data -> aStartDate.compareTo(data.getEndDate()) <= 0)
                 .filter(data -> aEndDate.compareTo(data.getStartDate()) >= 0)
+                .sorted(Comparator.comparing(LocalData::getStartDate))
                 .toList();
         }
     }
