@@ -156,7 +156,7 @@ public class WarehouseRepository {
         }
 
         @Override
-        public ResponsePart<T> call() {
+        public ResponsePart<T> call() throws InterruptedException {
             log.debug("Fetching warehouse data [request: {}]", request);
             long timer = System.currentTimeMillis();
 
@@ -189,14 +189,8 @@ public class WarehouseRepository {
                 start = resolution.next(start);
             }
 
-            try {
-                // sleep to simulate latency
-                Object lock = new Object();
-                synchronized (lock) {
-                    lock.wait(500 + (long) random.nextInt(5) * result.size());
-                }
-            } catch (InterruptedException ignore) {
-            }
+            // sleep to simulate latency
+            Thread.sleep(Duration.ofMillis(500 + (long) random.nextInt(5) * result.size()));
 
             if (log.isDebugEnabled()) {
                 log.debug("Fetched warehouse data [request: {}, size: {}, in: {}ms]",

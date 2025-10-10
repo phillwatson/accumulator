@@ -4,7 +4,6 @@ import com.hillayes.accumulator.Resolution;
 import com.hillayes.accumulator.ResolutionLoader;
 import com.hillayes.accumulator.resolutions.DefaultResolution;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -19,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 public class ResolutionLoaderTest {
     @Test
-    public void testResolutionConsistency() {
+    public void testResolutionConsistency() throws InterruptedException {
         LocalRepository repository = new LocalRepository(new WarehouseRepository());
         ResolutionLoader<LocalData> loader = new ResolutionLoader<>(repository);
 
@@ -38,10 +37,7 @@ public class ResolutionLoaderTest {
 
         // wait for batches to be saved
         // sleep to simulate latency
-        try {
-            Object lock = new Object();
-            synchronized (lock) { lock.wait(Duration.ofSeconds(2).toMillis()); }
-        } catch (InterruptedException ignore) { }
+        Thread.sleep(Duration.ofSeconds(2));
 
         // each resolution should equal the same total
         while (resolution != null) {

@@ -4,6 +4,7 @@ import com.hillayes.accumulator.Resolution;
 import com.hillayes.accumulator.ConcurrentResolutionRepository;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -33,12 +34,10 @@ public class LocalDatabase implements ConcurrentResolutionRepository.ThreadedDat
 
         // sleep to simulate latency
         try {
-            Object lock = new Object();
-            synchronized (lock) {
-                // sleep to simulate latency
-                lock.wait(100);
-            }
-        } catch (InterruptedException ignore) {
+            Thread.sleep(Duration.ofMillis(100));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();  //set the flag back to true
+            throw new RuntimeException(e);
         }
         log.debug("Batch Saved");
     }
