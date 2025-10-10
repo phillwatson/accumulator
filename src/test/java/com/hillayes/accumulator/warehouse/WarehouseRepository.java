@@ -36,7 +36,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * A repository for raw data that is to be fed into the accumulation process.
@@ -106,46 +105,35 @@ public class WarehouseRepository {
         log.debug("Divided warehouse request into parts [count: {}]", count);
 
         // gather the results of each request
-        List<ResponsePart<T>> results = new ArrayList<>(count);
-        int totalSize = 0;
-        while (count-- > 0) {
-            try {
+        List<T> result = requests.stream()
+            .flatMap(request -> {
                 // wait for the next request to complete
                 log.debug("Waiting for next warehouse response");
-                Future<ResponsePart<T>> data = completionQueue.take();
-
-                // add request's results to overall results
-                ResponsePart<T> part = data.get();
-                log.debug("Retrieved warehouse response [startDate: {}, size: {}]",
-                    part.startDate, part.size());
-
-                // maintain response totals
-                totalSize += part.size();
-                results.add(part);
-            } catch (InterruptedException e) {
-                // Preserve interrupt status
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                // the cause is the exception raised by the WarehouseTask
-                throw new RuntimeException(e.getCause());
-            }
-        }
-
-        // return the joined result sets in correct order
-        List<T> result = results.stream()
-            .sorted() // sort on leading start date
-            .map(ResponsePart::getData) // extract each part's data
-            .reduce(new ArrayList<>(totalSize), (a, b) -> { // accumulate parts in date order
-                a.addAll(b);
-                return a;
-            });
+                ResponsePart<T> part = getNextResult(completionQueue);
+                log.debug("Retrieved warehouse response [startDate: {}, size: {}]", part.startDate, part.size());
+                return part.data.stream();
+            })
+            .toList();
 
         if (log.isDebugEnabled()) {
             log.debug("Got warehouse data [request: {}, size: {}, in: {}ms]",
-                aRequest, totalSize, System.currentTimeMillis() - timer);
+                aRequest, result.size(), System.currentTimeMillis() - timer);
         }
+
         return result;
+    }
+
+    private <T extends DateRangedData> ResponsePart<T> getNextResult(ExecutorCompletionService<ResponsePart<T>> completionQueue) {
+        try {
+            return completionQueue.take().get();
+        } catch (InterruptedException e) {
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // the cause is the exception raised by the WarehouseTask
+            throw new RuntimeException(e.getCause());
+        }
     }
 
     /**

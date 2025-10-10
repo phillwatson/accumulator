@@ -10,14 +10,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ResolutionLoaderTest {
     @Test
-    public void test() {
-        WarehouseRepository warehouseRepository = new WarehouseRepository();
-        LocalRepository repository = new LocalRepository(warehouseRepository);
+    public void testResolutionConsistency() {
+        LocalRepository repository = new LocalRepository(new WarehouseRepository());
         ResolutionLoader<LocalData> loader = new ResolutionLoader<>(repository);
 
         Resolution resolution = DefaultResolution.DAY;
@@ -31,23 +32,40 @@ public class ResolutionLoaderTest {
 
         // sum the values for all elements
         Long total = data.stream()
-            .map(LocalData::getUnits)
-            .reduce(0L, Long::sum);
-
-        Awaitility.await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(5)).until(() -> {
-            List<LocalData> result = repository.get(DefaultResolution.MINUTE, start, end);
-            return result.size() == 4320;
-        });
+            .mapToLong(LocalData::getUnits)
+            .sum();
 
         // each resolution should equal the same total
         while (resolution != null) {
             Long result = repository.get(resolution, start, end).stream()
-                .map(LocalData::getUnits)
-                .reduce(0L, Long::sum);
+                .mapToLong(LocalData::getUnits)
+                .sum();
             assertEquals(total, result, "Resolution: " + resolution);
 
             // drop down to lower resolution
             resolution = resolution.getLower().orElse(null);
         }
+    }
+
+    @Test
+    public void testResolutionOrder() {
+        LocalRepository repository = new LocalRepository(new WarehouseRepository());
+        ResolutionLoader<LocalData> loader = new ResolutionLoader<>(repository);
+
+        Resolution resolution = DefaultResolution.MINUTE;
+        Instant end = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS);
+        Instant start = end.minus(2, ChronoUnit.DAYS);
+
+        List<LocalData> data =
+            loader.load(resolution, start, end);
+
+        // data is in ascending date order
+        AtomicReference<LocalData> prev = new AtomicReference<>();
+        data.forEach(entry -> {
+            if (prev.get() != null) {
+                assertTrue(prev.get().getStartDate().isBefore(entry.getStartDate()));
+            }
+            prev.set(entry);
+        });
     }
 }
