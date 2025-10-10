@@ -35,6 +35,7 @@ public class ResolutionLoaderTest {
             .sum();
 
         // each resolution should equal the same total
+        resolution = resolution.getLower().orElse(null);
         while (resolution != null) {
             Long result = repository .get(resolution, start, end).stream()
                 .mapToLong(LocalData::getUnits)
