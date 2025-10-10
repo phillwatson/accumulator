@@ -83,7 +83,7 @@ public class ResolutionLoader<T extends DateRangedData> {
 
         if (log.isDebugEnabled()) {
             log.debug("Completed loading data [resolution: {}, size: {}, duration: {}ms]",
-                result.size(), aResolution, System.currentTimeMillis() - started);
+                aResolution, result.size(), System.currentTimeMillis() - started);
         }
         return result;
     }

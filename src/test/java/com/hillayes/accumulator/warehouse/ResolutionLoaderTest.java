@@ -25,8 +25,7 @@ public class ResolutionLoaderTest {
         Instant end = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS);
         Instant start = end.minus(3, ChronoUnit.DAYS);
 
-        List<LocalData> data =
-            loader.load(resolution, start, end);
+        List<LocalData> data = loader.load(resolution, start, end);
 
         assertEquals(3, data.size());
 
@@ -37,7 +36,7 @@ public class ResolutionLoaderTest {
 
         // each resolution should equal the same total
         while (resolution != null) {
-            Long result = repository.get(resolution, start, end).stream()
+            Long result = repository .get(resolution, start, end).stream()
                 .mapToLong(LocalData::getUnits)
                 .sum();
             assertEquals(total, result, "Resolution: " + resolution);
@@ -56,8 +55,7 @@ public class ResolutionLoaderTest {
         Instant end = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS);
         Instant start = end.minus(2, ChronoUnit.DAYS);
 
-        List<LocalData> data =
-            loader.load(resolution, start, end);
+        List<LocalData> data = loader.load(resolution, start, end);
 
         // data is in ascending date order
         AtomicReference<LocalData> prev = new AtomicReference<>();
