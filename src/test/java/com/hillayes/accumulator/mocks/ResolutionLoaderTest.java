@@ -28,14 +28,14 @@ public class ResolutionLoaderTest {
 
         // sum the values for all elements
         Long total = data.stream()
-            .map(MockDateRangedData::getValue)
-            .reduce(0L, Long::sum);
+            .mapToLong(MockDateRangedData::getValue)
+            .sum();
 
         // each resolution should equal the same total
         while (resolution != null) {
             Long result = repository.getAll(resolution).stream()
-                .map(MockDateRangedData::getValue)
-                .reduce(0L, Long::sum);
+                .mapToLong(MockDateRangedData::getValue)
+                .sum();
             assertEquals(total, result);
 
             // drop down to lower resolution
