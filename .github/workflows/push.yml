@@ -13,6 +13,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  QUARKUS_CONTAINER_IMAGE_REGISTRY: ghcr.io
+  QUARKUS_CONTAINER_IMAGE_GROUP: ${{ github.repository_owner }}
+  QUARKUS_CONTAINER_IMAGE_PUSH: false
 
 jobs:
   build:
@@ -33,6 +36,13 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Build with Maven
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Test with Maven
         run: |
           mvn -B verify

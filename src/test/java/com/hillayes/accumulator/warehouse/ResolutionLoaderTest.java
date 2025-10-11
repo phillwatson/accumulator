@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ResolutionLoaderTest {
     @Test
     public void testResolutionConsistency() throws InterruptedException {
-        LocalRepository repository = new LocalRepository(new WarehouseRepository());
+        LocalRepository repository = new LocalRepository(new LocalDatabase(), new WarehouseRepository());
         ResolutionLoader<LocalData> loader = new ResolutionLoader<>(repository);
 
         Resolution resolution = DefaultResolution.DAY;
@@ -36,7 +36,6 @@ public class ResolutionLoaderTest {
             .sum();
 
         // wait for batches to be saved
-        // sleep to simulate latency
         Thread.sleep(Duration.ofSeconds(2));
 
         // each resolution should equal the same total
@@ -53,7 +52,7 @@ public class ResolutionLoaderTest {
 
     @Test
     public void testResolutionOrder() {
-        LocalRepository repository = new LocalRepository(new WarehouseRepository());
+        LocalRepository repository = new LocalRepository(new LocalDatabase(), new WarehouseRepository());
         ResolutionLoader<LocalData> loader = new ResolutionLoader<>(repository);
 
         Resolution resolution = DefaultResolution.MINUTE;

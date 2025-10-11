@@ -9,11 +9,12 @@ public class LocalDataAccumulation implements Accumulation<LocalData> {
     private final LocalData result;
 
     public LocalDataAccumulation(Resolution aResolution, Instant aStartDate, Instant aEndDate) {
-        result = new LocalData();
-        result.setResolution(aResolution);
-        result.setStartDate(aStartDate);
-        result.setEndDate(aEndDate);
-}
+        result = LocalData.builder()
+            .resolution(aResolution)
+            .startDate(aStartDate)
+            .endDate(aEndDate)
+            .build();
+    }
 
     @Override
     public void add(LocalData aLowerResRecord) {

@@ -31,6 +31,11 @@ import java.util.Optional;
  */
 public interface Resolution {
     /**
+     * Returns the name that identifies this Resolution instance.
+     */
+    String name();
+
+    /**
      * Returns the Resolution that is the immediate lower Resolution of this one.
      * If this is the lowest Resolution, the result will be an empty Optional.
      *
