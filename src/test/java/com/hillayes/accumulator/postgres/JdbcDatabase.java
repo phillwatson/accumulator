@@ -1,6 +1,6 @@
 package com.hillayes.accumulator.postgres;
 
-import com.hillayes.accumulator.BatchUpsertException;
+import com.hillayes.accumulator.BatchInsertException;
 import com.hillayes.accumulator.ConcurrentResolutionRepository;
 import com.hillayes.accumulator.Resolution;
 import com.hillayes.accumulator.warehouse.LocalData;
@@ -17,6 +17,12 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * An implementation of the ConcurrentResolutionRepository.ThreadedDatabase that
+ * persists data to a JDBC repository. It makes use of the SQL UPSERT to allow
+ * batches to be written on multiple threads whilst avoiding failures should
+ * multiple threads attempt to insert the same row(s).
+ */
 @Slf4j
 public class JdbcDatabase implements ConcurrentResolutionRepository.ThreadedDatabase<LocalData> {
     private static final String GET_STATEMENT =
@@ -67,7 +73,7 @@ public class JdbcDatabase implements ConcurrentResolutionRepository.ThreadedData
             saveAll(aBatch);
         } catch (Exception e) {
             log.warn("Failed to save batch [size: {}]", aBatch.size());
-            throw new BatchUpsertException(aBatch, e);
+            throw new BatchInsertException(aBatch, e);
         }
     }
 

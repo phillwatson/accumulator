@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Consumer;
 
+/**
+ * A test utility to start, and stop, a Docker Container for Postgres.
+ * It also provides methods to pool a DataSource and obtain connections.
+ */
 public class ConnectionSource {
     private static PostgreSQLContainer<?> postgres;
     private static PoolingDataSource<?> dataSource;

@@ -5,11 +5,11 @@ import java.util.Collection;
 /**
  * Raised when an upset of a batch of records fails unexpectedly.
  */
-public class BatchUpsertException extends RuntimeException {
+public class BatchInsertException extends RuntimeException {
     private final Collection<?> batch;
 
-    public BatchUpsertException(Collection<?> aBatch, Throwable cause) {
-        super("Failed to upset batch.", cause);
+    public BatchInsertException(Collection<?> aBatch, Throwable cause) {
+        super("Failed to insert batch of accumulation data.", cause);
         batch = aBatch;
     }
 
