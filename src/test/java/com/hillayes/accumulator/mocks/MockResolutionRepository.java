@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -15,6 +16,7 @@ public class MockResolutionRepository implements ResolutionRepository<MockDateRa
     private static final List<MockDateRangedData> EMPTY_RANGE = Collections.emptyList();
 
     private final Map<Resolution, List<MockDateRangedData>> repository = new HashMap<>();
+    private final AtomicInteger pendingBatchCount = new AtomicInteger();
 
     @Override
     public List<MockDateRangedData> fetch(Instant aStartDate, Instant aEndDate) {
@@ -47,10 +49,20 @@ public class MockResolutionRepository implements ResolutionRepository<MockDateRa
 
     @Override
     public void saveBatch(Spliterator<MockDateRangedData> aBatch) {
-        aBatch.forEachRemaining(element ->
-            repository.computeIfAbsent(element.getResolution(), k -> new ArrayList<>())
-                .add(element)
-        );
+        pendingBatchCount.incrementAndGet();
+        try {
+            aBatch.forEachRemaining(element ->
+                repository.computeIfAbsent(element.getResolution(), k -> new ArrayList<>())
+                    .add(element)
+            );
+        } finally {
+            pendingBatchCount.decrementAndGet();
+        }
+    }
+
+    @Override
+    public boolean isBatchPending() {
+        return pendingBatchCount.get() == 0;
     }
 
     @Override

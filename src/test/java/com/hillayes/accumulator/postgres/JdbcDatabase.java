@@ -1,5 +1,6 @@
 package com.hillayes.accumulator.postgres;
 
+import com.hillayes.accumulator.BatchUpsertException;
 import com.hillayes.accumulator.ConcurrentResolutionRepository;
 import com.hillayes.accumulator.Resolution;
 import com.hillayes.accumulator.warehouse.LocalData;
@@ -11,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,13 +56,32 @@ public class JdbcDatabase implements ConcurrentResolutionRepository.ThreadedData
 
     @Override
     public void saveBatch(Spliterator<LocalData> aBatch) {
-        log.debug("Saving batch of size: {}", aBatch.estimateSize());
         ArrayList<LocalData> dataList = new ArrayList<>();
         aBatch.forEachRemaining(dataList::add);
 
+        saveBatch(dataList);
+    }
+
+    public void saveBatch(Collection<LocalData> aBatch) {
+        try {
+            saveAll(aBatch);
+        } catch (Exception e) {
+            log.warn("Failed to save batch [size: {}]", aBatch.size());
+            throw new BatchUpsertException(aBatch, e);
+        }
+    }
+
+    private void saveAll(Collection<LocalData> aBatch) {
+        if ((aBatch == null) || (aBatch.isEmpty())) {
+            log.debug("Skipping empty batch");
+            return;
+        }
+        log.debug("Saving batch [size: {}, resolution: {}]",
+            aBatch.size(), aBatch.stream().findFirst().get().getResolution());
+
         // construct insert statement with placeholders for each row
         String sql = "INSERT INTO test.accumulation (resolution, start_date, end_date, units, blocks) VALUES " +
-            createRowPlaceholders(dataList.size()) +
+            createRowPlaceholders(aBatch.size()) +
             " ON CONFLICT DO NOTHING;";
 
         ConnectionSource.withConnection(con -> {
@@ -70,7 +91,7 @@ public class JdbcDatabase implements ConcurrentResolutionRepository.ThreadedData
                 try (PreparedStatement statement = con.prepareStatement(sql)) {
                     // add each row to the statement
                     AtomicInteger index = new AtomicInteger(0);
-                    for (LocalData row : dataList) {
+                    for (LocalData row : aBatch) {
                         int offset = index.get() * 5;
                         statement.setString(offset + 1, row.getResolution().name());
                         statement.setTimestamp(offset + 2, Timestamp.from(row.getStartDate()));

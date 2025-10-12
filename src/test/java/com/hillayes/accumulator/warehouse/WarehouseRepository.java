@@ -28,14 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * A repository for raw data that is to be fed into the accumulation process.
@@ -108,9 +102,9 @@ public class WarehouseRepository {
                 // wait for the next request to complete
                 log.debug("Waiting for next warehouse response");
                 ResponsePart<T> part = getNextResult(completionQueue);
-                log.debug("Retrieved warehouse response [startDate: {}, size: {}]", part.startDate, part.size());
-                return part.data.stream();
+                return (part == null) ? null : part.data.stream();
             })
+            .filter(Objects::nonNull)
             .toList();
 
         if (log.isDebugEnabled()) {
@@ -123,7 +117,16 @@ public class WarehouseRepository {
 
     private <T extends DateRangedData> ResponsePart<T> getNextResult(ExecutorCompletionService<ResponsePart<T>> completionQueue) {
         try {
-            return completionQueue.take().get();
+            Future<ResponsePart<T>> next = completionQueue.take();
+            switch (next.state()) {
+                case Future.State.SUCCESS:
+                    ResponsePart<T> part = next.get();
+                    log.debug("Retrieved warehouse response [startDate: {}, size: {}]", part.startDate, part.size());
+                    return part;
+                case Future.State.FAILED:
+                    log.warn("Failed to retrieve warehouse data.", next.exceptionNow());
+            }
+            return null;
         } catch (InterruptedException e) {
             // Preserve interrupt status
             Thread.currentThread().interrupt();

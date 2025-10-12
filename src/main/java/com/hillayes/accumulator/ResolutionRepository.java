@@ -103,6 +103,13 @@ public interface ResolutionRepository<T extends DateRangedData> {
     void saveBatch(Spliterator<T> aBatch);
 
     /**
+     * Tests whether there are any batches currently pending to be saved.
+     *
+     * @return true if any batches are currently pending, false otherwise.
+     */
+    boolean isBatchPending();
+
+    /**
      * Marks the beginning of the accumulation of elements that together form the
      * element of the given resolution covering the given date range.
      * <p>
