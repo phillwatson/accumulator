@@ -15,8 +15,9 @@ public class LocalRepository extends ConcurrentResolutionRepository<LocalData> {
     // the reader that will convert the fetched data into the local data type
     private final WarehouseReader<LocalData> reader = new LocalReader();
 
-    public LocalRepository(WarehouseRepository warehouseRepository) {
-        super(new LocalDatabase());
+    public LocalRepository(ConcurrentResolutionRepository.ThreadedDatabase<LocalData> database,
+                           WarehouseRepository warehouseRepository) {
+        super(database);
         this.warehouseRepository = warehouseRepository;
     }
 

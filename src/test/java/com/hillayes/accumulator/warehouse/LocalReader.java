@@ -16,15 +16,13 @@ public class LocalReader implements WarehouseReader<LocalData> {
         long units = Long.parseLong(parts[1]);
         long blocks = Long.parseLong(parts[2]);
 
-        LocalData result = new LocalData();
-
         // data from warehouse is always in the lowest resolution
-        result.setResolution(WAREHOUSE_RESOLUTION);
-        result.setStartDate(timestamp);
-        result.setEndDate(WAREHOUSE_RESOLUTION.next(timestamp));
-        result.setUnits(units);
-        result.setBlocks(blocks);
-
-        return result;
+        return LocalData.builder()
+            .resolution(WAREHOUSE_RESOLUTION)
+            .startDate(timestamp)
+            .endDate(WAREHOUSE_RESOLUTION.next(timestamp))
+            .units(units)
+            .blocks(blocks)
+            .build();
     }
 }

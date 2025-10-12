@@ -164,8 +164,8 @@ public class ResolutionLoader<T extends DateRangedData> {
             // if we filled any gaps
             if (!missing.isEmpty()) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Saving data [size: {}, resolution: {}, start: {}, end: {}]",
-                        missing.size(), aResolution, resolutionStartDate, resolutionEndDate);
+                    log.debug("Saving data [resolution: {}, size: {}, start: {}, end: {}]",
+                        aResolution, missing.size(), resolutionStartDate, resolutionEndDate);
                 }
                 // save them and add to the overall results
                 result.addAll(repository.save(missing));
@@ -181,7 +181,7 @@ public class ResolutionLoader<T extends DateRangedData> {
 
         if (log.isDebugEnabled()) {
             log.debug("Loaded data entries [resolution: {}, size: {}, duration: {}ms]",
-                result.size(), aResolution, System.currentTimeMillis() - started);
+                aResolution, result.size(), System.currentTimeMillis() - started);
         }
         return result;
     }
@@ -249,7 +249,7 @@ public class ResolutionLoader<T extends DateRangedData> {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Accumulating data items [to: {}, from: {}, start: {}, end: {}, size: {}]",
+            log.debug("Accumulated data items [to: {}, from: {}, start: {}, end: {}, size: {}]",
                 aResolution, lowerRes, aStartDate, aEndDate, result.size());
         }
         return result;

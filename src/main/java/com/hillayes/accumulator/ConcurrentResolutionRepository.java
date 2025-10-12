@@ -3,8 +3,8 @@ package com.hillayes.accumulator;
 import java.time.Instant;
 import java.util.List;
 import java.util.Spliterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An implementation of ResolutionRepository that offloads the persistence of
@@ -14,10 +14,14 @@ import java.util.concurrent.Executors;
  */
 public abstract class ConcurrentResolutionRepository<T extends DateRangedData> implements ResolutionRepository<T> {
     private final ExecutorService executorService;
-    protected final ThreadedDatabase<T> database;
+    private final ThreadedDatabase<T> database;
+    private final AtomicInteger pendingBatchCount = new AtomicInteger();
 
     public ConcurrentResolutionRepository(ThreadedDatabase<T> aBatchWriter) {
+        // a pool of virtual threads on which batches can be persisted
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+
+        // a database which resolutions can be written to and retrieved from
         this.database = aBatchWriter;
     }
 
@@ -28,7 +32,19 @@ public abstract class ConcurrentResolutionRepository<T extends DateRangedData> i
 
     @Override
     public final void saveBatch(Spliterator<T> aBatch) {
-        executorService.submit(() -> database.saveBatch(aBatch));
+        pendingBatchCount.incrementAndGet();
+        executorService.submit(() -> {
+            try {
+                database.saveBatch(aBatch);
+            } finally {
+                pendingBatchCount.decrementAndGet();
+            }
+        });
+    }
+
+    @Override
+    public boolean isBatchPending() {
+        return pendingBatchCount.get() == 0;
     }
 
     /**
